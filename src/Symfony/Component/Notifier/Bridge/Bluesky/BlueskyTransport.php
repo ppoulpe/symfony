@@ -91,6 +91,29 @@ final class BlueskyTransport extends AbstractTransport
             unset($options['attach']);
         }
 
+        if(isset($options['external'])) {
+
+            $uploadedMedia = $this->uploadMedia(
+                [
+                    [
+                        'file' => $options['external']['thumb'],
+                        'description' => $options['external']['description']
+                    ]
+                ]
+            );
+
+            $options['record']['embed'] = [
+                '$type' => 'app.bsky.embed.external',
+                'external' => [
+                    'uri' => $options['external']['uri'],
+                    'title' => $options['external']['title'],
+                    'description' => $options['external']['description'],
+                    'thumb' => current($uploadedMedia)['image'],
+                ]
+            ];
+            unset($options['external']);
+        }
+
         $response = $this->client->request('POST', \sprintf('https://%s/xrpc/com.atproto.repo.createRecord', $this->getEndpoint()), [
             'auth_bearer' => $this->authSession['accessJwt'] ?? null,
             'json' => $options,
